@@ -8,16 +8,30 @@ export const pb = new PocketBase(POCKETBASE_URL);
 pb.autoCancellation(false);
 
 export const authService = {
-  async signUp(username: string, email: string, password: string, passwordConfirm: string): Promise<User> {
-    const record = await pb.collection('users').create<User>({
-      username: username.trim(),
-      email: email.trim(),
-      password,
-      passwordConfirm,
-      emailVisibility: true,
-      online: true,
-      last_seen: new Date().toISOString(),
-    });
+  async signUp(username: string, email: string, password: string, passwordConfirm: string, avatarFile?: File): Promise<User> {
+    let record: User;
+    if (avatarFile) {
+      const formData = new FormData();
+      formData.append('username', username.trim());
+      formData.append('email', email.trim());
+      formData.append('password', password);
+      formData.append('passwordConfirm', passwordConfirm);
+      formData.append('emailVisibility', 'true');
+      formData.append('online', 'true');
+      formData.append('last_seen', new Date().toISOString());
+      formData.append('avatar', avatarFile);
+      record = await pb.collection('users').create<User>(formData);
+    } else {
+      record = await pb.collection('users').create<User>({
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        passwordConfirm,
+        emailVisibility: true,
+        online: true,
+        last_seen: new Date().toISOString(),
+      });
+    }
     // Auto login after signup using username
     await pb.collection('users').authWithPassword(username.trim(), password);
     return record;

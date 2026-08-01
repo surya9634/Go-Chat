@@ -1,6 +1,6 @@
 {
-  "short_name": "NEXORA",
-  "name": "NEXORA Go-Chat Realtime",
+  "short_name": "Go-Chat",
+  "name": "Go-Chat Realtime",
   "icons": [
     {
       "src": "/favicon.svg",

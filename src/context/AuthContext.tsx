@@ -8,7 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  signUp: (username: string, email: string, pass: string, passConfirm: string) => Promise<void>;
+  signUp: (username: string, email: string, pass: string, passConfirm: string, avatarFile?: File) => Promise<void>;
   logout: () => void;
   requestPasswordReset: (email: string) => Promise<void>;
   requestVerification: (email: string) => Promise<void>;
@@ -35,12 +35,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       pb.collection('users').authRefresh<User>()
         .then((res) => {
           setCurrentUser(res.record);
-          authService.updatePresence(true);
+          authService.updatePresence(true).catch(() => {});
         })
         .catch(() => {
           pb.authStore.clear();
           setCurrentUser(null);
-          showToast('Session expired. Please log in again.', 'warning', 'Session Expired');
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -50,21 +49,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       unsubscribe();
     };
-  }, [showToast]);
+  }, []);
 
   // Online status presence listener
   useEffect(() => {
     if (!currentUser?.id) return;
 
-    const handleFocus = () => authService.updatePresence(true);
-    const handleBlur = () => authService.updatePresence(false);
+    const handleFocus = () => authService.updatePresence(true).catch(() => {});
+    const handleBlur = () => authService.updatePresence(false).catch(() => {});
 
     window.addEventListener('focus', handleFocus);
     window.addEventListener('blur', handleBlur);
 
     // Heartbeat every 2 minutes
     const heartbeat = setInterval(() => {
-      authService.updatePresence(true);
+      authService.updatePresence(true).catch(() => {});
     }, 120000);
 
     return () => {
@@ -88,9 +87,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (username: string, email: string, pass: string, passConfirm: string) => {
+  const signUp = async (username: string, email: string, pass: string, passConfirm: string, avatarFile?: File) => {
     try {
-      const user = await authService.signUp(username, email, pass, passConfirm);
+      const user = await authService.signUp(username, email, pass, passConfirm, avatarFile);
       setCurrentUser(user);
       showToast('Account created successfully!', 'success');
     } catch (err: any) {

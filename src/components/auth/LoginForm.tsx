@@ -40,7 +40,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Welcome Back</h2>
         <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 font-medium">
-          Sign in to your NEXORA Go-Chat account
+          Sign in to your Go-Chat account
         </p>
       </div>
 

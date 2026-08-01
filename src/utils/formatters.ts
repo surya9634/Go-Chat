@@ -6,8 +6,7 @@ export function getPocketBaseFileUrl(record: { id: string; collectionId?: string
   if (filename.startsWith('http://') || filename.startsWith('https://') || filename.startsWith('blob:')) {
     return filename;
   }
-  const collection = record.collectionName || record.collectionId;
-  if (!collection) return '';
+  const collection = record.collectionName || record.collectionId || 'users';
   return `${POCKETBASE_URL}/api/files/${collection}/${record.id}/${filename}`;
 }
 

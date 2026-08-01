@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.nexora.gochat',
-  appName: 'NEXORA Go-Chat',
+  appId: 'com.gochat.app',
+  appName: 'Go-Chat',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

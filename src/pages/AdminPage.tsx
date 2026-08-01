@@ -173,7 +173,7 @@ function AdminLogin({ onLogin }: { onLogin: (s: AdminSession) => void }) {
         <div className="admin-logo-row">
           <div className="admin-logo-icon">⚡</div>
           <div>
-            <div className="admin-logo-title">NEXORA</div>
+            <div className="admin-logo-title">Go-Chat</div>
             <div className="admin-logo-sub">Admin Control Panel</div>
           </div>
         </div>
@@ -228,7 +228,7 @@ function AdminDashboard({ session, tab, onTabChange, onLogout }: {
       <aside className="admin-sidebar">
         <div className="admin-sidebar-logo">
           <div className="admin-logo-icon sm">⚡</div>
-          <span className="admin-sidebar-title">NEXORA</span>
+          <span className="admin-sidebar-title">Go-Chat</span>
         </div>
 
         <nav className="admin-nav">

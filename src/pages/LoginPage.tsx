@@ -68,7 +68,7 @@ export const AuthScreen: React.FC = () => {
       <div className="z-10 text-center pb-1 pt-2 shrink-0">
         <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium flex items-center justify-center gap-1.5">
           <Shield className="w-3 h-3 text-emerald-500" />
-          End-to-End Encrypted & Secure • NEXORA Realtime Network
+          End-to-End Encrypted & Secure • Go-Chat Realtime Network
         </p>
       </div>
 

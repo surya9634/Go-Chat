@@ -32,13 +32,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
 
     try {
       setIsSubmitting(true);
-      await signUp(username, email, password, passwordConfirm);
-
-      if (avatarFile) {
-        const formData = new FormData();
-        formData.append('avatar', avatarFile);
-        await updateProfile(formData);
-      }
+      await signUp(username, email, password, passwordConfirm, avatarFile || undefined);
     } catch (err) {
       // Error toast shown by AuthContext
     } finally {
@@ -55,7 +49,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
         </div>
         <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">Create Account</h2>
         <p className="text-[11px] sm:text-xs text-muted-foreground font-medium">
-          Join NEXORA realtime chat network
+          Join Go-Chat realtime network
         </p>
       </div>
 
