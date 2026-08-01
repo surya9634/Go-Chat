@@ -145,10 +145,9 @@ function AdminLogin({ onLogin }: { onLogin: (s: AdminSession) => void }) {
     if (a.lockedUntil > Date.now()) return;
     setErr(''); setLoading(true);
     try {
-      const res = await fetch(`${PB_URL}/api/admins/auth-with-password`, {
+      // Uses custom hook at /api/go-admin/auth?pw= (v0.22 compatible)
+      const res = await fetch(`${PB_URL}/api/go-admin/auth?pw=${encodeURIComponent(pw)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identity: ADMIN_EMAIL, password: pw }),
       });
       if (!res.ok) {
         const na = recordFail();

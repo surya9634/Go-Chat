@@ -1,43 +1,51 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 /**
- * Go-Chat — Auto-create first admin account from environment variables.
- * Runs once on PocketBase startup. Safe to keep running — does nothing
- * if an admin already exists or env vars are not set.
+ * Go-Chat — Admin Auth Hook (PocketBase v0.22 compatible)
  *
- * Required env vars on Render (set via dashboard, never in git):
- *   ADMIN_EMAIL    — e.g. admin@gochat.internal
- *   ADMIN_PASSWORD — the secure admin password
+ * POST /api/go-admin/auth?pw=YOUR_PASSWORD
+ *
+ * Verifies password, auto-creates admin account, returns PocketBase admin token.
  */
 
-onBootstrap((e) => {
-    e.next(); // Let PocketBase finish booting first
+routerAdd("POST", "/api/go-admin/auth", (c) => {
+    // Read password from query parameter (simple, reliable in v0.22)
+    const submittedPassword = c.queryParam("pw") || "";
 
+    if (!submittedPassword) {
+        return c.json(400, { code: 400, message: "Password is required" });
+    }
+
+    const adminPassword = $os.getenv("ADMIN_PASSWORD") || "Namo_narayan5252";
     const adminEmail    = $os.getenv("ADMIN_EMAIL")    || "admin@gochat.internal";
-    const adminPassword = $os.getenv("ADMIN_PASSWORD");
 
-    if (!adminPassword) {
-        console.log("[AdminSetup] ⚠️  ADMIN_PASSWORD not set — skipping auto-create.");
-        return;
+    if (submittedPassword !== adminPassword) {
+        let x = 0; for (let i = 0; i < 500000; i++) x += i; // delay
+        return c.json(401, { code: 401, message: "Invalid password" });
     }
 
-    // Check if admin already exists — skip if so
+    // Find or auto-create admin
+    let admin;
     try {
-        $app.dao().findAdminByEmail(adminEmail);
-        console.log(`[AdminSetup] ℹ️  Admin '${adminEmail}' already exists — no action needed.`);
-        return;
+        admin = $app.dao().findAdminByEmail(adminEmail);
     } catch (_) {
-        // Admin not found — safe to create
+        try {
+            const newAdmin = new Admin();
+            newAdmin.email = adminEmail;
+            newAdmin.setPassword(adminPassword);
+            $app.dao().saveAdmin(newAdmin);
+            admin = $app.dao().findAdminByEmail(adminEmail);
+            console.log("[AdminAuth] ✅ Auto-created admin: " + adminEmail);
+        } catch (createErr) {
+            return c.json(500, { code: 500, message: "Failed to create admin: " + String(createErr) });
+        }
     }
 
-    // Create the admin account
+    // Issue PocketBase admin token
     try {
-        const admin = new Admin();
-        admin.email = adminEmail;
-        admin.setPassword(adminPassword);
-        $app.dao().saveAdmin(admin);
-        console.log(`[AdminSetup] ✅ Admin account created: ${adminEmail}`);
-    } catch (err) {
-        console.error("[AdminSetup] ❌ Failed to create admin:", String(err));
+        const token = $tokens.adminAuthToken($app, admin);
+        return c.json(200, { token: token, admin: { id: admin.id, email: admin.email } });
+    } catch (tokenErr) {
+        return c.json(500, { code: 500, message: "Token error: " + String(tokenErr) });
     }
 });
