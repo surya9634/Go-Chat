@@ -80,7 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(user);
       showToast(`Welcome back, ${user.username || 'User'}!`, 'success');
     } catch (err: any) {
-      showToast(err.message || 'Invalid username/email or password', 'error', 'Login Failed');
+      const msg = err?.status === 400 || (err?.message && err.message.toLowerCase().includes('authenticate'))
+        ? 'Incorrect username/email or password. Please check your credentials or Create an Account.'
+        : (err.message || 'Login failed');
+      showToast(msg, 'error', 'Login Failed');
       throw err;
     }
   };

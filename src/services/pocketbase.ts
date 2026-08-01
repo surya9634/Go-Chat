@@ -18,8 +18,8 @@ export const authService = {
       online: true,
       last_seen: new Date().toISOString(),
     });
-    // Auto login after signup using email or username
-    await pb.collection('users').authWithPassword(email.trim() || username.trim(), password);
+    // Auto login after signup using username
+    await pb.collection('users').authWithPassword(username.trim(), password);
     return record;
   },
 
