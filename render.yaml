@@ -14,8 +14,12 @@ services:
       - key: PORT
         value: 10000
       # Turso DB credentials — stored as Render Secrets (never committed to code)
-      # Currently used for reference; will be active when PocketBase adds native LibSQL support
       - key: TURSO_DATABASE_URL
-        sync: false   # ← Render will prompt you to enter the value in dashboard
+        sync: false
       - key: TURSO_AUTH_TOKEN
-        sync: false   # ← Render will prompt you to enter the value in dashboard
+        sync: false
+      # Admin panel credentials — set in Render dashboard, NEVER commit to git
+      - key: ADMIN_EMAIL
+        sync: false   # e.g. admin@gochat.internal
+      - key: ADMIN_PASSWORD
+        sync: false   # your secure admin password

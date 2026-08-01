@@ -11,7 +11,15 @@ import { AuthScreen } from './pages/LoginPage';
 import { CallModal } from './components/modals/CallModal';
 import { StoryViewerModal } from './components/stories/StoryViewerModal';
 import { CreateStoryModal } from './components/stories/CreateStoryModal';
+import AdminPage from './pages/AdminPage';
 
+// ─── Admin Route Guard ─────────────────────────────────────────────────────────
+// The admin panel is completely isolated from user auth/context.
+// It has its own session stored in sessionStorage.
+const isAdminRoute = () =>
+  typeof window !== 'undefined' && window.location.pathname === '/admin';
+
+// ─── Main Router ───────────────────────────────────────────────────────────────
 const MainRouter: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
@@ -31,7 +39,13 @@ const MainRouter: React.FC = () => {
   );
 };
 
+// ─── App Root ──────────────────────────────────────────────────────────────────
 export function App() {
+  // Admin route: render completely isolated, no user providers
+  if (isAdminRoute()) {
+    return <AdminPage />;
+  }
+
   return (
     <ThemeProvider>
       <ToastProvider>
