@@ -1,0 +1,448 @@
+[
+  {
+    "id": "conversations_col",
+    "name": "conversations",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "conv_type",
+        "name": "type",
+        "type": "select",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": ["private", "group"]
+        }
+      },
+      {
+        "system": false,
+        "id": "conv_name",
+        "name": "name",
+        "type": "text",
+        "required": false,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "conv_image",
+        "name": "image",
+        "type": "file",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 5242880,
+          "mimeTypes": ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
+        }
+      },
+      {
+        "system": false,
+        "id": "conv_created_by",
+        "name": "created_by",
+        "type": "relation",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "@request.auth.id != '' && conversation_members_via_conversation.user ?= @request.auth.id",
+    "viewRule": "@request.auth.id != '' && conversation_members_via_conversation.user ?= @request.auth.id",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": "@request.auth.id = created_by"
+  },
+  {
+    "id": "conv_members_col",
+    "name": "conversation_members",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "mem_conv",
+        "name": "conversation",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "conversations_col",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "mem_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "mem_role",
+        "name": "role",
+        "type": "select",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": ["owner", "admin", "member"]
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_conv_user` ON `conversation_members` (`conversation`, `user`)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "@request.auth.id != ''",
+    "deleteRule": "@request.auth.id != ''"
+  },
+  {
+    "id": "messages_col",
+    "name": "messages",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "msg_conv",
+        "name": "conversation",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "conversations_col",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "msg_sender",
+        "name": "sender",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "msg_text",
+        "name": "text",
+        "type": "text",
+        "required": false,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "msg_attachment",
+        "name": "attachment",
+        "type": "file",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 5,
+          "maxSize": 52428800,
+          "mimeTypes": []
+        }
+      },
+      {
+        "system": false,
+        "id": "msg_reply_to",
+        "name": "reply_to",
+        "type": "relation",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "messages_col",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "msg_edited",
+        "name": "edited",
+        "type": "bool",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "system": false,
+        "id": "msg_deleted",
+        "name": "deleted",
+        "type": "bool",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "system": false,
+        "id": "msg_pinned",
+        "name": "pinned",
+        "type": "bool",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX `idx_msg_conv_created` ON `messages` (`conversation`, `created`)"
+    ],
+    "listRule": "@request.auth.id != '' && conversation.conversation_members_via_conversation.user ?= @request.auth.id",
+    "viewRule": "@request.auth.id != '' && conversation.conversation_members_via_conversation.user ?= @request.auth.id",
+    "createRule": "@request.auth.id = sender && conversation.conversation_members_via_conversation.user ?= @request.auth.id",
+    "updateRule": "@request.auth.id = sender",
+    "deleteRule": "@request.auth.id = sender"
+  },
+  {
+    "id": "reactions_col",
+    "name": "reactions",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "react_msg",
+        "name": "message",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "messages_col",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "react_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "react_emoji",
+        "name": "emoji",
+        "type": "text",
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": 10,
+          "pattern": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_react_msg_user_emoji` ON `reactions` (`message`, `user`, `emoji`)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id = user",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "read_receipts_col",
+    "name": "read_receipts",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "rr_msg",
+        "name": "message",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "messages_col",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "rr_user",
+        "name": "user",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": true,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "rr_read_at",
+        "name": "read_at",
+        "type": "date",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_rr_msg_user` ON `read_receipts` (`message`, `user`)"
+    ],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id = user",
+    "updateRule": "@request.auth.id = user",
+    "deleteRule": "@request.auth.id = user"
+  },
+  {
+    "id": "files_col",
+    "name": "files",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "file_item",
+        "name": "file",
+        "type": "file",
+        "required": true,
+        "presentable": true,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "maxSize": 104857600,
+          "mimeTypes": []
+        }
+      },
+      {
+        "system": false,
+        "id": "file_by",
+        "name": "uploaded_by",
+        "type": "relation",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "collectionId": "_pb_users_auth_",
+          "cascadeDelete": false,
+          "minSelect": null,
+          "maxSelect": 1,
+          "displayFields": []
+        }
+      },
+      {
+        "system": false,
+        "id": "file_type",
+        "name": "type",
+        "type": "text",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "file_size",
+        "name": "size",
+        "type": "number",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "noDecimal": true
+        }
+      }
+    ],
+    "indexes": [],
+    "listRule": "@request.auth.id != ''",
+    "viewRule": "@request.auth.id != ''",
+    "createRule": "@request.auth.id = uploaded_by",
+    "updateRule": "@request.auth.id = uploaded_by",
+    "deleteRule": "@request.auth.id = uploaded_by"
+  }
+]

@@ -1,0 +1,14 @@
+# Render Infrastructure as Code (Blueprint)
+# Learn more: https://render.com/docs/yaml
+
+services:
+  - type: web
+    name: go-chat
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
