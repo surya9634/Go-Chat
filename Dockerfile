@@ -34,6 +34,7 @@ COPY --from=builder /app/dist ./dist
 # Copy schema, migrations, and hooks
 COPY pb_schema.json ./
 COPY scripts/ ./scripts/
+COPY pb_migrations/ ./pb_migrations/
 # PocketBase JS hooks (cron cleanup, custom routes)
 COPY pb_hooks/ ./pb_hooks/
 

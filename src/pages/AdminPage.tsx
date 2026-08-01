@@ -52,10 +52,10 @@ interface Stats {
 
 type Tab = 'dashboard' | 'users' | 'messages';
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
+import { getPocketBaseUrl } from '../utils/constants';
 
 const ADMIN_EMAIL = 'admin@gochat.internal';
-const PB_URL = (import.meta.env.VITE_POCKETBASE_URL as string) || 'http://127.0.0.1:8090';
+const PB_URL = getPocketBaseUrl();
 const SESSION_KEY = '__gc_adm__';
 const ATTEMPT_KEY = '__gc_att__';
 const MAX_ATTEMPTS = 5;

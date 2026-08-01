@@ -1,4 +1,19 @@
-export const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL || 'http://127.0.0.1:8090';
+export const getPocketBaseUrl = (): string => {
+  if (import.meta.env.VITE_POCKETBASE_URL) {
+    return import.meta.env.VITE_POCKETBASE_URL;
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    // If running in Vite dev server (port 5173 / 3000), target local PocketBase at 8090
+    if (window.location.port === '5173' || window.location.port === '3000') {
+      return `http://${window.location.hostname}:8090`;
+    }
+    // When deployed (e.g. on Render), PocketBase serves the frontend from same origin
+    return window.location.origin;
+  }
+  return 'http://127.0.0.1:8090';
+};
+
+export const POCKETBASE_URL = getPocketBaseUrl();
 
 export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
 
