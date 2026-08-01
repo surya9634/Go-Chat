@@ -659,12 +659,14 @@ const ConversationListItem: React.FC<{
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className="relative shrink-0">
-          <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={avatarSrc} />
-            <AvatarFallback>{name.substring(0, 2).toUpperCase()}</AvatarFallback>
+          <Avatar className="h-11 w-11 border border-border/80 shadow-sm ring-1 ring-border/20">
+            <AvatarImage src={avatarSrc} className="object-cover" />
+            <AvatarFallback className="font-bold text-xs bg-emerald-500/10 text-emerald-500">
+              {name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           {!isGroup && conv.otherUser?.online && (
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background" />
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-card shadow-sm" />
           )}
         </div>
 
@@ -814,20 +816,21 @@ const CallsLogPanel: React.FC<{
             >
               {/* Avatar */}
               <div className="relative shrink-0">
-                <Avatar className="h-10 w-10 border border-border">
+                <Avatar className="h-11 w-11 border border-border/80 shadow-sm ring-1 ring-border/20">
                   <AvatarImage
                     src={
                       conv.otherUser?.avatar
                         ? getPocketBaseFileUrl(conv.otherUser, conv.otherUser.avatar)
                         : undefined
                     }
+                    className="object-cover"
                   />
-                  <AvatarFallback>
+                  <AvatarFallback className="font-bold text-xs bg-emerald-500/10 text-emerald-500">
                     {(conv.otherUser?.username || "U").substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {conv.otherUser?.online && (
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background" />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-card shadow-sm" />
                 )}
               </div>
 
@@ -922,20 +925,21 @@ const ContactsPanel: React.FC<{
               className="px-4 py-3 flex items-center gap-3 hover:bg-muted/50 border-b border-border/40 transition-colors"
             >
               <div className="relative shrink-0">
-                <Avatar className="h-10 w-10 border border-border">
+                <Avatar className="h-11 w-11 border border-border/80 shadow-sm ring-1 ring-border/20">
                   <AvatarImage
                     src={
                       user.avatar
                         ? getPocketBaseFileUrl(user, user.avatar)
                         : undefined
                     }
+                    className="object-cover"
                   />
-                  <AvatarFallback>
+                  <AvatarFallback className="font-bold text-xs bg-emerald-500/10 text-emerald-500">
                     {(user.username || "U").substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 {user.online && (
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background" />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-card shadow-sm" />
                 )}
               </div>
 
