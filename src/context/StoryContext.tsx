@@ -56,15 +56,21 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (currentUser) {
       refreshStories();
 
-      // Subscribe to realtime story file creations
+      let unbind: (() => void) | null = null;
       pb.collection('files').subscribe('*', (e) => {
         if (e.action === 'create') {
           refreshStories();
         }
+      }).then((unsub) => {
+        unbind = unsub;
       }).catch(() => {});
 
       return () => {
-        pb.collection('files').unsubscribe('*').catch(() => {});
+        if (unbind) {
+          try { unbind(); } catch (_) {}
+        } else {
+          pb.collection('files').unsubscribe('*').catch(() => {});
+        }
       };
     }
   }, [currentUser, refreshStories]);
