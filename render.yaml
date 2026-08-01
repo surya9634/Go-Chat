@@ -9,6 +9,13 @@ services:
     region: oregon
     dockerfilePath: ./Dockerfile
     autoDeploy: true
+    healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: 10000
+      # Turso DB credentials — stored as Render Secrets (never committed to code)
+      # Currently used for reference; will be active when PocketBase adds native LibSQL support
+      - key: TURSO_DATABASE_URL
+        sync: false   # ← Render will prompt you to enter the value in dashboard
+      - key: TURSO_AUTH_TOKEN
+        sync: false   # ← Render will prompt you to enter the value in dashboard

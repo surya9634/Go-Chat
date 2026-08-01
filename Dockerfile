@@ -22,6 +22,7 @@ WORKDIR /app
 
 # Download PocketBase AMD64 for Linux
 ENV PB_VERSION=0.22.14
+# Update to newer version when LibSQL/Turso native support lands in pre-built binary
 RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
     && unzip pocketbase_${PB_VERSION}_linux_amd64.zip \
     && rm pocketbase_${PB_VERSION}_linux_amd64.zip \
@@ -30,9 +31,11 @@ RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSIO
 # Copy built static frontend from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Copy schema and migrations if present
+# Copy schema, migrations, and hooks
 COPY pb_schema.json ./
 COPY scripts/ ./scripts/
+# PocketBase JS hooks (cron cleanup, custom routes)
+COPY pb_hooks/ ./pb_hooks/
 
 # Expose port (Render automatically sets PORT env var)
 EXPOSE 10000
