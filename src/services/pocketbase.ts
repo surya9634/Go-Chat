@@ -10,23 +10,23 @@ pb.autoCancellation(false);
 export const authService = {
   async signUp(username: string, email: string, password: string, passwordConfirm: string): Promise<User> {
     const record = await pb.collection('users').create<User>({
-      username,
-      email,
+      username: username.trim(),
+      email: email.trim(),
       password,
       passwordConfirm,
       emailVisibility: true,
       online: true,
       last_seen: new Date().toISOString(),
     });
-    // Auto login after signup
-    await pb.collection('users').authWithPassword(email, password);
+    // Auto login after signup using email or username
+    await pb.collection('users').authWithPassword(email.trim() || username.trim(), password);
     return record;
   },
 
-  async login(email: string, password: string): Promise<User> {
-    const authData = await pb.collection('users').authWithPassword<User>(email, password);
+  async login(identity: string, password: string): Promise<User> {
+    const authData = await pb.collection('users').authWithPassword<User>(identity.trim(), password);
     // Update presence
-    await this.updatePresence(true);
+    await this.updatePresence(true).catch(() => {});
     return authData.record;
   },
 

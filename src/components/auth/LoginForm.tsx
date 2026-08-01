@@ -48,16 +48,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div>
           <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-            Email Address
+            Email or Username
           </label>
           <div className="relative">
             <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground shrink-0" />
             <input
-              type="email"
+              type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
+              placeholder="username or name@example.com"
               className="w-full pl-10 pr-4 py-3 rounded-2xl bg-background border border-border text-foreground text-xs sm:text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-muted-foreground/60"
             />
           </div>

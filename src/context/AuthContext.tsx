@@ -74,13 +74,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [currentUser?.id]);
 
-  const login = async (email: string, pass: string) => {
+  const login = async (identity: string, pass: string) => {
     try {
-      const user = await authService.login(email, pass);
+      const user = await authService.login(identity, pass);
       setCurrentUser(user);
       showToast(`Welcome back, ${user.username || 'User'}!`, 'success');
     } catch (err: any) {
-      showToast(err.message || 'Invalid email or password', 'error', 'Login Failed');
+      showToast(err.message || 'Invalid username/email or password', 'error', 'Login Failed');
       throw err;
     }
   };

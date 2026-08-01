@@ -283,10 +283,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
-      unbindMessages.then((unsub) => unsub());
-      unbindReactions.then((unsub) => unsub());
-      unbindReceipts.then((unsub) => unsub());
-      unbindUsers.then((unsub) => unsub());
+      unbindMessages.then((unsub) => unsub().catch(() => {})).catch(() => {});
+      unbindReactions.then((unsub) => unsub().catch(() => {})).catch(() => {});
+      unbindReceipts.then((unsub) => unsub().catch(() => {})).catch(() => {});
+      unbindUsers.then((unsub) => unsub().catch(() => {})).catch(() => {});
     };
   }, [currentUser?.id, refreshConversations]);
 
