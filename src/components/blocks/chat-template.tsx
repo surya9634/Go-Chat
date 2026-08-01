@@ -611,6 +611,7 @@ const ConversationListItem: React.FC<{
   onToggleHide: () => void;
 }> = ({ conv, isSelected, isHidden, onSelect, onToggleHide }) => {
   const { clearChat, deleteConversation } = useChat()
+  const { currentUser } = useAuth()
 
   const isGroup = conv.type === "group"
   const name = isGroup
@@ -623,11 +624,11 @@ const ConversationListItem: React.FC<{
     : conv.otherUser?.avatar
     ? getPocketBaseFileUrl(conv.otherUser, conv.otherUser.avatar)
     : undefined
-  const messageText = conv.lastMessage
-    ? conv.lastMessage.deleted
-      ? "[Message deleted]"
-      : conv.lastMessage.text || (conv.lastMessage.attachment ? "📷 Media" : "")
-    : "No messages yet"
+  let messageText = conv.lastMessage?.text || (conv.lastMessage?.attachment?.length ? "📷 Attachment" : "No messages yet")
+  if (messageText.startsWith('[CALL_SIGNAL:')) {
+    messageText = messageText.includes(':video:') ? "📹 Video Call" : "📞 Voice Call"
+  }
+  const isOwnMessage = conv.lastMessage?.sender === currentUser?.id
   const timestamp = conv.lastMessage?.created || conv.created
   const unreadCount = (typeof conv.unreadCount === 'number' ? conv.unreadCount : 0)
   const otherUserId = conv.otherUser?.id
@@ -679,7 +680,9 @@ const ConversationListItem: React.FC<{
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground gap-2">
             <div className="flex items-center gap-1 min-w-0 truncate">
-              <CheckCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              {conv.lastMessage && isOwnMessage && (
+                <CheckCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              )}
               <span className="truncate text-xs text-muted-foreground">{messageText}</span>
             </div>
             {unreadCount > 0 && (

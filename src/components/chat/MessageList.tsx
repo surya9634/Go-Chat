@@ -44,7 +44,7 @@ export const MessageList: React.FC = () => {
   const clearedAtTime = clearedAtStr ? new Date(clearedAtStr).getTime() : 0;
 
   const unclearedMessages = messages.filter(
-    (m) => new Date(m.created).getTime() > clearedAtTime
+    (m) => new Date(m.created).getTime() > clearedAtTime && !m.text?.startsWith('[CALL_SIGNAL:')
   );
 
   const pinnedMessages = unclearedMessages.filter((m) => m.pinned && !m.deleted);

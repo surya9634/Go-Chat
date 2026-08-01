@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { CallSession, CallType, User } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './ToastContext';
+import { pb } from '../services/pocketbase';
 
 interface CallContextType {
   activeCall: CallSession | null;
@@ -26,7 +27,6 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
-  // Use refs to always have the latest stream for cleanup without stale closures
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -36,7 +36,6 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (stream) stream.getTracks().forEach((t) => t.stop());
   };
 
-  // Stable cleanup that always references current streams via refs
   const cleanupCall = useCallback(() => {
     stopStream(localStreamRef.current);
     stopStream(remoteStreamRef.current);
@@ -54,9 +53,92 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       callTimerRef.current = null;
     }
     setActiveCall(null);
-  }, []); // no deps needed — reads from refs
+  }, []);
 
-  // Initiate call
+  // Send real-time call signal via PocketBase messages
+  const sendSignal = useCallback(
+    async (
+      conversationId: string,
+      type: CallType,
+      action: 'start' | 'accept' | 'decline' | 'end',
+      callId: string,
+      targetUserId: string
+    ) => {
+      if (!currentUser?.id) return;
+      try {
+        await pb.collection('messages').create({
+          conversation: conversationId,
+          sender: currentUser.id,
+          text: `[CALL_SIGNAL:${type}:${action}:${callId}:${currentUser.id}:${targetUserId}]`,
+        });
+      } catch (_) {}
+    },
+    [currentUser?.id]
+  );
+
+  // Real-time listener for incoming call signals across devices
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    let unbind: (() => void) | null = null;
+    pb.collection('messages')
+      .subscribe('*', (e) => {
+        if (e.action !== 'create') return;
+        const text = (e.record as any)?.text || '';
+        if (!text.startsWith('[CALL_SIGNAL:')) return;
+
+        const content = text.slice(13, -1);
+        const parts = content.split(':');
+        if (parts.length < 5) return;
+        const [type, action, callId, senderId, targetId] = parts as [CallType, string, string, string, string];
+
+        // Check if signal is aimed at the current logged in user
+        if (targetId === currentUser.id) {
+          if (action === 'start') {
+            const callerUser = (e.record as any).expand?.sender || { id: senderId, username: 'User' };
+            setActiveCall({
+              id: callId,
+              conversationId: (e.record as any).conversation,
+              caller: callerUser,
+              receiver: currentUser,
+              type,
+              status: 'incoming',
+              durationSeconds: 0,
+              isMuted: false,
+              isVideoOff: false,
+              isScreenSharing: false,
+            });
+          } else if (action === 'accept') {
+            setActiveCall((prev) => {
+              if (prev && prev.id === callId) {
+                if (callTimerRef.current) clearInterval(callTimerRef.current);
+                callTimerRef.current = setInterval(() => {
+                  setActiveCall((c) => (c ? { ...c, durationSeconds: c.durationSeconds + 1 } : null));
+                }, 1000);
+                return { ...prev, status: 'connected', startedAt: Date.now() };
+              }
+              return prev;
+            });
+            showToast('Call connected', 'success');
+          } else if (action === 'decline' || action === 'end') {
+            cleanupCall();
+            showToast(action === 'decline' ? 'Call declined' : 'Call ended', 'info');
+          }
+        }
+      })
+      .then((unsub) => {
+        unbind = unsub;
+      })
+      .catch(() => {});
+
+    return () => {
+      if (unbind) {
+        try { unbind(); } catch (_) {}
+      }
+    };
+  }, [currentUser?.id, cleanupCall, showToast]);
+
+  // Initiate outgoing call
   const initiateCall = useCallback(
     async (targetUser: User, conversationId: string, type: CallType) => {
       if (!currentUser) return;
@@ -70,8 +152,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStreamRef.current = stream;
         setLocalStream(stream);
 
+        const callId = Math.random().toString(36).substring(2, 9);
         const newCall: CallSession = {
-          id: Math.random().toString(36).substring(2, 9),
+          id: callId,
           conversationId,
           caller: currentUser,
           receiver: targetUser,
@@ -85,20 +168,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setActiveCall(newCall);
 
-        // Simulate the remote side accepting after 2.5s (demo mode)
-        setTimeout(() => {
-          setActiveCall((prev) => {
-            if (prev && prev.status === 'calling') {
-              callTimerRef.current = setInterval(() => {
-                setActiveCall((c) =>
-                  c ? { ...c, durationSeconds: c.durationSeconds + 1 } : null
-                );
-              }, 1000);
-              return { ...prev, status: 'connected', startedAt: Date.now() };
-            }
-            return prev;
-          });
-        }, 2500);
+        // Send start signal to receiver via PocketBase
+        await sendSignal(conversationId, type, 'start', callId, targetUser.id);
       } catch (err: any) {
         showToast(
           err.name === 'NotAllowedError'
@@ -108,7 +179,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       }
     },
-    [currentUser, showToast]
+    [currentUser, showToast, sendSignal]
   );
 
   // Accept incoming call
@@ -122,6 +193,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStreamRef.current = stream;
       setLocalStream(stream);
 
+      if (callTimerRef.current) clearInterval(callTimerRef.current);
       callTimerRef.current = setInterval(() => {
         setActiveCall((c) => (c ? { ...c, durationSeconds: c.durationSeconds + 1 } : null));
       }, 1000);
@@ -129,22 +201,51 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveCall((prev) =>
         prev ? { ...prev, status: 'connected', startedAt: Date.now() } : null
       );
+
+      // Send accept signal back to caller
+      await sendSignal(
+        activeCall.conversationId,
+        activeCall.type,
+        'accept',
+        activeCall.id,
+        activeCall.caller.id
+      );
+
       showToast('Call connected', 'success');
     } catch (err: any) {
       showToast(`Failed to accept call: ${err.message}`, 'error');
       cleanupCall();
     }
-  }, [activeCall, showToast, cleanupCall]);
+  }, [activeCall, showToast, cleanupCall, sendSignal]);
 
-  const declineCall = useCallback(() => {
+  const declineCall = useCallback(async () => {
+    if (activeCall) {
+      await sendSignal(
+        activeCall.conversationId,
+        activeCall.type,
+        'decline',
+        activeCall.id,
+        activeCall.caller.id
+      );
+    }
     showToast('Call declined', 'info');
     cleanupCall();
-  }, [showToast, cleanupCall]);
+  }, [activeCall, showToast, cleanupCall, sendSignal]);
 
-  const endCall = useCallback(() => {
+  const endCall = useCallback(async () => {
+    if (activeCall && currentUser) {
+      const otherUser = activeCall.caller.id === currentUser.id ? activeCall.receiver : activeCall.caller;
+      await sendSignal(
+        activeCall.conversationId,
+        activeCall.type,
+        'end',
+        activeCall.id,
+        otherUser.id
+      );
+    }
     showToast('Call ended', 'info');
     cleanupCall();
-  }, [showToast, cleanupCall]);
+  }, [activeCall, currentUser, showToast, cleanupCall, sendSignal]);
 
   // Toggle Mute
   const toggleMute = useCallback(() => {
